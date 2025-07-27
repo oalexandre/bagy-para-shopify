@@ -10,17 +10,35 @@
 
 </div>
 
-## 📋 Descrição do Projeto
+## 📋 Descriçã## 📈 Histórico de Versões
 
-Este projeto automatiza a migração de dados da plataforma **Bagy (Dooca Commerce)** para o **Shopify**, convertendo os formatos de dados para serem compatíveis com a importação. O sistema processa três tipos principais de dados:
+### v2.1 (Atual) 
+- ✅ **NOVO**: Script de geração de redirects 301 automáticos
+- ✅ Mapeamento SKU → Handle para preservar SEO
+- ✅ Relatórios detalhados de redirects criados
+- ✅ Integração completa com fluxo de migração
+
+### v2.0 
+- ✅ Uso de variáveis de ambiente (`.env`)
+- ✅ Organização automática de pastas
+- ✅ Regras aprimoradas de variação (Cor + Tamanho)
+- ✅ Tratamento completo de imagens
+- ✅ Compatibilidade total com template Shopify
+
+### v1.0 (Inicial)
+- ✅ Scripts básicos de exportação
+- ✅ Conversão simples para CSV
+- ✅ Estrutura de projeto básica
+Este projeto automatiza a migração de dados da plataforma **Bagy (Dooca Commerce)** para o **Shopify**, convertendo os formatos de dados para serem compatíveis com a importação. O sistema processa quatro tipos principais de dados:
 
 - 📦 **Produtos** - Converte produtos com variações, preços, imagens e estoque
 - 👥 **Clientes** - Exporta dados de clientes com endereços completos
 - 🎟️ **Cupons** - Exporta códigos de desconto e promoções
+- 🔗 **Redirects 301** - Gera redirecionamentos para preservar SEO
 
 ### 🎯 Objetivo
 
-Facilitar a migração completa de lojas virtuais da plataforma Bagy para o Shopify, garantindo que todos os dados sejam convertidos corretamente e estejam prontos para importação, seguindo as melhores práticas e padrões do Shopify.
+Facilitar a migração completa de lojas virtuais da plataforma Bagy para o Shopify, garantindo que todos os dados sejam convertidos corretamente e estejam prontos para importação, seguindo as melhores práticas e padrões do Shopify. Inclui a criação automática de redirects 301 para preservar o SEO e evitar páginas 404.
 
 ## 📁 Estrutura do Projeto
 
@@ -30,16 +48,20 @@ bagy-para-shopify/
 ├── 👥 importCustomersFromBagy.py       # Exporta clientes da API Bagy  
 ├── 🎟️ importDiscountCodeFromBagy.py    # Exporta cupons da API Bagy
 ├── 🔄 convert_bagy_to_shopify_final.py # Converte JSON para CSV Shopify
-├── 📋 requirements.txt                 # Dependências Python
+├── � generateRedirects301.py          # Gera redirects 301 para SEO
+├── �📋 requirements.txt                 # Dependências Python
 ├── 🔐 .env                            # Configurações (API_KEY)
 ├── 📖 README.md                       # Documentação do projeto
 ├── 📂 imported/                       # Arquivos brutos da Bagy
 │   ├── produtos.json
 │   ├── produtos_dooca.xlsx
 │   ├── clientes_dooca.xlsx
-│   └── cupons_dooca.xlsx
+│   ├── cupons_dooca.xlsx
+│   └── products_export_1.csv          # Exportação dos produtos do Shopify
 └── 📂 converted/                      # Arquivos prontos para Shopify
-    └── produtos_shopify_completo.csv
+    ├── produtos_shopify_completo.csv
+    ├── redirects_301.csv              # Redirects prontos para importação
+    └── redirects_detailed_report.csv  # Relatório detalhado dos redirects
 ```
 
 
@@ -125,6 +147,36 @@ python convert_bagy_to_shopify_final.py
 - 📄 Gera: `converted/produtos_shopify_completo.csv`
 - ⚙️ Aplica regras específicas do Shopify
 
+### 🔗 Passo 3: Gerar Redirects 301 (Opcional)
+
+#### 3.1 Exportar Produtos do Shopify
+Antes de gerar os redirects, você precisa exportar os produtos já importados no Shopify:
+
+1. **No admin do Shopify**, vá em **Produtos**
+2. Clique em **Exportar** (botão no canto superior direito)
+3. Selecione:
+   - **Formato**: CSV for Excel, Numbers, or other spreadsheet programs
+   - **Exportar**: Todos os produtos
+4. Baixe o arquivo e renomeie para `products_export_1.csv`
+5. Coloque o arquivo na pasta `imported/`
+
+#### 3.2 Gerar Arquivo de Redirects
+```bash
+python generateRedirects301.py
+```
+- ✅ Lê `imported/produtos.json` (URLs da Bagy)
+- 🔍 Mapeia SKUs com `imported/products_export_1.csv` (Handles do Shopify)
+- 📄 Gera: `converted/redirects_301.csv` (pronto para importação)
+- 📊 Cria relatório detalhado em `converted/redirects_detailed_report.csv`
+
+#### 3.3 Importar Redirects no Shopify
+1. **No admin do Shopify**, vá em **Navegação** → **Redirecionamentos de URL**
+2. Clique em **Importar redirecionamentos**
+3. Faça upload do arquivo `converted/redirects_301.csv`
+4. Confirme a importação
+
+> 🎯 **Objetivo**: Preservar SEO mantendo as URLs antigas da Bagy redirecionando para as novas URLs do Shopify
+
 
 ## ⚙️ Regras de Conversão para Shopify
 
@@ -164,6 +216,25 @@ python convert_bagy_to_shopify_final.py
 
 - 📄 Use os arquivos Excel gerados na pasta `imported/`
 - 🔧 Importe manualmente ou use ferramentas de migração do Shopify
+
+## 🔗 Benefícios dos Redirects 301
+
+Os redirects automáticos garantem uma migração sem perda de SEO:
+
+### ✅ Vantagens
+- 🎯 **Preserva ranking Google**: Mantém autoridade das páginas
+- 👥 **Melhora experiência do usuário**: Evita páginas 404
+- 📊 **Transfere link juice**: Preserva valor dos backlinks externos  
+- 🤖 **Facilita reindexação**: Google entende a mudança de domínio
+- ⚡ **Automático**: Processa centenas de produtos rapidamente
+
+### 📋 Como funciona
+1. **Mapeia por SKU**: Conecta produtos Bagy ↔ Shopify pelo mesmo SKU
+2. **URLs de origem**: `https://www.asmanhas.com.br/produto-exemplo`
+3. **URLs de destino**: `/products/produto-exemplo-shopify`
+4. **Importação fácil**: Arquivo CSV pronto para o Shopify
+
+> 💡 **Dica**: Execute os redirects após importar todos os produtos no Shopify para garantir que os handles estejam corretos.
 
 
 ## 🛠️ Solução de Problemas
@@ -211,6 +282,28 @@ python convert_bagy_to_shopify_final.py
 
 </details>
 
+<details>
+<summary><strong>🔗 "Nenhum redirect foi criado"</strong></summary>
+
+**Soluções:**
+- ✅ Verifique se o arquivo `products_export_1.csv` está na pasta `imported/`
+- ✅ Confirme se você exportou os produtos do Shopify **após** importá-los
+- ✅ Verifique se os SKUs coincidem entre Bagy e Shopify
+- ✅ Execute primeiro `python importProductsFromBagy.py` e `python convert_bagy_to_shopify_final.py`
+
+</details>
+
+<details>
+<summary><strong>📊 "Poucos redirects gerados"</strong></summary>
+
+**Soluções:**
+- ✅ Confirme que todos os produtos foram importados no Shopify
+- ✅ Verifique se os SKUs não foram alterados durante a importação
+- ✅ Confira o relatório `redirects_detailed_report.csv` para mais detalhes
+- ✅ Produtos sem variações podem não ter SKUs mapeados
+
+</details>
+
 ### 📊 Logs e Monitoramento
 
 Todos os scripts mostram:
@@ -245,7 +338,46 @@ Todos os scripts mostram:
 - **Importação Shopify**: [Documentação oficial do Shopify](https://help.shopify.com)
 - **Este projeto**: Verifique os logs de erro e soluções acima
 
-## 📈 Histórico de Versões
+## � Exemplos Práticos
+
+### 🔗 Exemplo de Redirect Gerado
+
+```csv
+Redirect from,Redirect to
+/bandana-pet-calma-caraio-asmanhas,/products/bandana-pet-calma-caraio-asmanhas
+/bandana-pet-calma-caraio-asmanhas/azul,/products/bandana-pet-calma-caraio-asmanhas
+/camiseta-mestre-gambiarra-asmanhas,/products/camiseta-mestre-da-gambiarra-asmanhas
+```
+
+### 📊 Fluxo Completo de Migração
+
+```
+1. 📥 Exportar da Bagy
+   ├── python importProductsFromBagy.py
+   ├── python importCustomersFromBagy.py
+   └── python importDiscountCodeFromBagy.py
+
+2. 🔄 Converter para Shopify
+   └── python convert_bagy_to_shopify_final.py
+
+3. 📦 Importar no Shopify
+   ├── Produtos: produtos_shopify_completo.csv
+   ├── Clientes: clientes_dooca.xlsx
+   └── Cupons: cupons_dooca.xlsx
+
+4. 🔗 Gerar Redirects
+   ├── Exportar produtos do Shopify → products_export_1.csv
+   ├── python generateRedirects301.py
+   └── Importar redirects_301.csv no Shopify
+```
+
+### 🎯 Resultado Final
+- ✅ Todos os produtos migrados com variações corretas
+- ✅ Clientes e cupons prontos para importação
+- ✅ SEO preservado com redirects 301 automáticos
+- ✅ URLs antigas redirecionam para as novas
+
+## �📈 Histórico de Versões
 
 ### v2.0 (Atual) 
 - ✅ Uso de variáveis de ambiente (`.env`)
