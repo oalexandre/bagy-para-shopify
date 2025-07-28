@@ -127,9 +127,12 @@ python importDiscountCodeFromBagy.py
 Converte saldos de cashback da Bagy em cupons de desconto funcionais no Shopify, criando automaticamente as Price Rules e Discount Codes necessários.
 
 ### 📋 Pré-requisitos
-1. **Arquivo de saldos:** Execute primeiro `importCashbackFromBagy.py` para gerar `cashback_saldos.json`
-2. **APIs configuradas:** Configure as variáveis de ambiente para Bagy e Shopify
-3. **Permissões Shopify:** Token deve ter os escopos: `read_customers`, `write_price_rules`, `write_discounts`
+1. **Clientes no Shopify:** **OBRIGATÓRIO** - Execute `importCustomersFromBagy.py` e importe os clientes no Shopify primeiro
+2. **Arquivo de saldos:** Execute `importCashbackFromBagy.py` para gerar `cashback_saldos.json`
+3. **APIs configuradas:** Configure as variáveis de ambiente para Bagy e Shopify
+4. **Permissões Shopify:** Token deve ter os escopos: `read_customers`, `write_price_rules`, `write_discounts`
+
+> ⚠️ **IMPORTANTE**: Os vouchers serão associados aos clientes via email. Se o cliente não existir no Shopify, o voucher será criado para uso geral (qualquer pessoa pode usar).
 
 ### ⚙️ Configuração do Shopify
 
@@ -154,12 +157,18 @@ SHOPIFY_ACCESS_TOKEN=shpat_seu_token_aqui
 
 ### 🚀 Como executar
 ```bash
-# 1. Certifique-se que o arquivo de cashback existe
+# 1. OBRIGATÓRIO: Importe os clientes primeiro
+python importCustomersFromBagy.py
+# Em seguida, importe os clientes no Shopify via admin
+
+# 2. Certifique-se que o arquivo de cashback existe
 python importCashbackFromBagy.py
 
-# 2. Execute a criação de vouchers
+# 3. Execute a criação de vouchers
 python generateVouchersFromCashback.py
 ```
+
+> 📝 **Fluxo obrigatório**: Clientes → Shopify → Cashback → Vouchers
 
 ### 📊 O que o script faz
 
@@ -232,6 +241,9 @@ positive_balances = filter_positive_balances(all_balances, limit=None)
 **Resultado:** Cliente será pulado, processamento continua
 
 ---
+
+> 💡 **DICA IMPORTANTE**: Para posteriormente gerar vouchers no Shopify, importe os clientes primeiro executando `importCustomersFromBagy.py` e faça a importação manual no admin do Shopify.
+
 ```bash
 # Execução completa
 python importCashbackFromBagy.py
@@ -284,6 +296,9 @@ O script foi desenvolvido para contornar um bug conhecido da API Bagy no endpoin
 - ⚡ Modo teste para validação rápida
 
 #### 1.6 Gerar Vouchers de Cashback (Criação Automática no Shopify)
+
+> ⚠️ **PRÉ-REQUISITO CRÍTICO**: Execute `importCustomersFromBagy.py` e importe os clientes no Shopify ANTES de gerar vouchers. Os vouchers só poderão ser restritos a clientes que já existam no Shopify.
+
 ```bash
 # Cria vouchers reais no Shopify - 10 primeiros casos
 python generateVouchersFromCashback.py
@@ -584,27 +599,31 @@ Redirect from,Redirect to
 ```
 1. 📥 Exportar da Bagy
    ├── python importProductsFromBagy.py
-   ├── python importCustomersFromBagy.py
+   ├── python importCustomersFromBagy.py  ⭐ PRIORIDADE
    ├── python importDiscountCodeFromBagy.py
    └── python importCashbackFromBagy.py
 
-2. 🎫 Gerar Vouchers de Cashback (Opcional)
+2. 📦 Importar CLIENTES no Shopify (OBRIGATÓRIO ANTES DOS VOUCHERS)
+   └── Importar clientes_dooca.xlsx no admin do Shopify
+
+3. 🎫 Gerar Vouchers de Cashback (Opcional - após clientes importados)
    └── python generateVouchersFromCashback.py
 
-3. 🔄 Converter para Shopify
+4. 🔄 Converter para Shopify
    └── python convert_bagy_to_shopify_final.py
 
-4. 📦 Importar no Shopify
+5. 📦 Importar restante no Shopify
    ├── Produtos: produtos_shopify_completo.csv
-   ├── Clientes: clientes_dooca.xlsx
    ├── Cupons: cupons_dooca.xlsx
    └── Cashback: cashback_saldos.xlsx (dados de referência)
 
-5. 🔗 Gerar Redirects
+6. 🔗 Gerar Redirects
    ├── Exportar produtos do Shopify → products_export_1.csv
    ├── python generateRedirects301.py
    └── Importar redirects_301.csv no Shopify
 ```
+
+> ⚠️ **ORDEM CRÍTICA**: Clientes devem ser importados no Shopify ANTES de gerar vouchers de cashback
 
 ### 🎯 Resultado Final
 - ✅ Todos os produtos migrados com variações corretas
