@@ -10,30 +10,13 @@
 
 </div>
 
-## 📋 Descriçã## 📈 Histórico de Versões
 
-### v2.1 (Atual) 
-- ✅ **NOVO**: Script de geração de redirects 301 automáticos
-- ✅ Mapeamento SKU → Handle para preservar SEO
-- ✅ Relatórios detalhados de redirects criados
-- ✅ Integração completa com fluxo de migração
-
-### v2.0 
-- ✅ Uso de variáveis de ambiente (`.env`)
-- ✅ Organização automática de pastas
-- ✅ Regras aprimoradas de variação (Cor + Tamanho)
-- ✅ Tratamento completo de imagens
-- ✅ Compatibilidade total com template Shopify
-
-### v1.0 (Inicial)
-- ✅ Scripts básicos de exportação
-- ✅ Conversão simples para CSV
-- ✅ Estrutura de projeto básica
-Este projeto automatiza a migração de dados da plataforma **Bagy (Dooca Commerce)** para o **Shopify**, convertendo os formatos de dados para serem compatíveis com a importação. O sistema processa quatro tipos principais de dados:
+Este projeto automatiza a migração de dados da plataforma **Bagy (Dooca Commerce)** para o **Shopify**, convertendo os formatos de dados para serem compatíveis com a importação. O sistema processa cinco tipos principais de dados:
 
 - 📦 **Produtos** - Converte produtos com variações, preços, imagens e estoque
 - 👥 **Clientes** - Exporta dados de clientes com endereços completos
 - 🎟️ **Cupons** - Exporta códigos de desconto e promoções
+- 💰 **Saldos de Cashback** - Exporta saldos atuais de cashback por customer_id (com tratamento robusto de erros da API)
 - 🔗 **Redirects 301** - Gera redirecionamentos para preservar SEO
 
 ### 🎯 Objetivo
@@ -53,15 +36,7 @@ bagy-para-shopify/
 ├── 🔐 .env                            # Configurações (API_KEY)
 ├── 📖 README.md                       # Documentação do projeto
 ├── 📂 imported/                       # Arquivos brutos da Bagy
-│   ├── produtos.json
-│   ├── produtos_dooca.xlsx
-│   ├── clientes_dooca.xlsx
-│   ├── cupons_dooca.xlsx
-│   └── products_export_1.csv          # Exportação dos produtos do Shopify
 └── 📂 converted/                      # Arquivos prontos para Shopify
-    ├── produtos_shopify_completo.csv
-    ├── redirects_301.csv              # Redirects prontos para importação
-    └── redirects_detailed_report.csv  # Relatório detalhado dos redirects
 ```
 
 
@@ -135,6 +110,58 @@ python importDiscountCodeFromBagy.py
 - ✅ Baixa todos os cupons de desconto da API Bagy
 - 📄 Gera: `imported/cupons_dooca.xlsx`
 - 📋 Inclui: códigos, valores, regras, validades
+
+#### 1.4 Exportar Saldos de Cashback
+```bash
+# Execução completa
+python importCashbackFromBagy.py
+
+# Ver opções de ajuda
+python importCashbackFromBagy.py --help
+```
+
+**📋 Funcionalidades:**
+- ✅ **Busca Direta**: Usa endpoint `/cashbacks/customers/balances`
+-  **Foco nos Saldos**: Exporta apenas customer_id e saldo atual (não histórico de transações)
+- 🛡️ **Tratamento de Erros**: Detecta e trata erros da API automaticamente
+- 📊 **Progresso Detalhado**: Mostra quantos clientes foram processados e quantos têm saldo
+
+**📄 Arquivos Gerados:**
+- `imported/cashback_saldos.xlsx` - Planilha Excel com saldos
+- `imported/cashback_saldos.json` - Arquivo JSON com saldos  
+- `imported/cashback_saldos_summary.txt` - Relatório com estatísticas
+
+**🔧 Tratamento de Problemas da API:**
+O script detecta automaticamente problemas na API Bagy (como o erro `Cannot read properties of undefined (reading 'startsWith')`) e tenta diferentes abordagens para garantir que os dados sejam coletados corretamente.
+
+**📄 Arquivos Gerados:**
+- `imported/cashback_saldos.xlsx` - Planilha Excel com saldos
+- `imported/cashback_saldos.json` - Arquivo JSON com saldos  
+- `imported/cashback_saldos_summary.txt` - Relatório com estatísticas
+
+**🔧 Tratamento de Problemas da API:**
+O script foi desenvolvido para contornar um bug conhecido da API Bagy no endpoint de saldos (`Cannot read properties of undefined (reading 'startsWith')`). Quando detecta este erro, automaticamente usa o método alternativo que:
+
+1. Lista todos os clientes via `/customers` 
+2. Para cada cliente, consulta o saldo individual via `/cashbacks/customers/{id}/balance`
+3. Filtra apenas clientes com saldo > 0
+4. Exporta os dados organizados
+
+**� Estrutura dos Dados Exportados:**
+```json
+{
+  "customer_id": 12345,
+  "balance": 25.50,
+  "next_expiration": "2024-12-31",
+  "next_release": "2024-01-15"
+}
+```
+
+**💡 Benefícios do Método Alternativo:**
+- 🚀 Funciona mesmo com bugs na API Bagy
+- 🎯 Filtra automaticamente apenas clientes com saldo
+- 📈 Mostra progresso detalhado durante execução
+- ⚡ Modo teste para validação rápida
 
 ### 🔄 Passo 2: Converter para Shopify
 
@@ -212,10 +239,11 @@ python generateRedirects301.py
 4. 🗺️ Mapeie os campos conforme necessário
 5. ▶️ Execute a importação
 
-### Para Clientes e Cupons
+### Para Clientes, Cupons e Cashback
 
 - 📄 Use os arquivos Excel gerados na pasta `imported/`
 - 🔧 Importe manualmente ou use ferramentas de migração do Shopify
+- 💰 **Cashback**: Dados para referência e migração manual (Shopify não tem sistema nativo de cashback)
 
 ## 🔗 Benefícios dos Redirects 301
 
@@ -252,7 +280,25 @@ Os redirects automáticos garantem uma migração sem perda de SEO:
 </details>
 
 <details>
-<summary><strong>📄 "Arquivo produtos.json não encontrado"</strong></summary>
+<summary><strong>� "Erro 500 no endpoint de cashback" (Cannot read properties of undefined)</strong></summary>
+
+**Este é um erro conhecido da API Bagy relacionado ao endpoint `/cashbacks/customers/balances`.**
+
+**Soluções automáticas do script:**
+- ✅ O script detecta automaticamente este erro
+- ✅ Usa método alternativo via endpoint `/customers`
+- ✅ Consulta saldos individuais para cada cliente
+- ✅ Filtra apenas clientes com saldo > 0
+
+**Se o erro persistir:**
+- ✅ Verifique se a API_KEY tem permissões para acessar cashback
+- ✅ Aguarde alguns minutos e tente novamente
+- ✅ Execute em horários de menor tráfego na API
+
+</details>
+
+<details>
+<summary><strong>�📄 "Arquivo produtos.json não encontrado"</strong></summary>
 
 **Soluções:**
 - ✅ Execute primeiro `python importProductsFromBagy.py`
@@ -301,6 +347,17 @@ Os redirects automáticos garantem uma migração sem perda de SEO:
 - ✅ Verifique se os SKUs não foram alterados durante a importação
 - ✅ Confira o relatório `redirects_detailed_report.csv` para mais detalhes
 - ✅ Produtos sem variações podem não ter SKUs mapeados
+
+</details>
+
+<details>
+<summary><strong>💰 "Nenhum dado de cashback encontrado"</strong></summary>
+
+**Soluções:**
+- ✅ Verifique se sua loja utiliza o sistema de cashback da Bagy
+- ✅ Confirme se a API_KEY tem permissões para acessar dados de cashback
+- ✅ Verifique se existem clientes com saldo ou lançamentos de cashback
+- ✅ Consulte o suporte da Bagy sobre acesso aos endpoints de cashback
 
 </details>
 
@@ -355,7 +412,8 @@ Redirect from,Redirect to
 1. 📥 Exportar da Bagy
    ├── python importProductsFromBagy.py
    ├── python importCustomersFromBagy.py
-   └── python importDiscountCodeFromBagy.py
+   ├── python importDiscountCodeFromBagy.py
+   └── python importCashbackFromBagy.py
 
 2. 🔄 Converter para Shopify
    └── python convert_bagy_to_shopify_final.py
@@ -363,7 +421,8 @@ Redirect from,Redirect to
 3. 📦 Importar no Shopify
    ├── Produtos: produtos_shopify_completo.csv
    ├── Clientes: clientes_dooca.xlsx
-   └── Cupons: cupons_dooca.xlsx
+   ├── Cupons: cupons_dooca.xlsx
+   └── Cashback: cashback_saldos.xlsx e cashback_lancamentos.xlsx
 
 4. 🔗 Gerar Redirects
    ├── Exportar produtos do Shopify → products_export_1.csv
@@ -374,22 +433,9 @@ Redirect from,Redirect to
 ### 🎯 Resultado Final
 - ✅ Todos os produtos migrados com variações corretas
 - ✅ Clientes e cupons prontos para importação
+- ✅ Dados de cashback exportados para análise e migração manual
 - ✅ SEO preservado com redirects 301 automáticos
 - ✅ URLs antigas redirecionam para as novas
-
-## �📈 Histórico de Versões
-
-### v2.0 (Atual) 
-- ✅ Uso de variáveis de ambiente (`.env`)
-- ✅ Organização automática de pastas
-- ✅ Regras aprimoradas de variação (Cor + Tamanho)
-- ✅ Tratamento completo de imagens
-- ✅ Compatibilidade total com template Shopify
-
-### v1.0 (Inicial)
-- ✅ Scripts básicos de exportação
-- ✅ Conversão simples para CSV
-- ✅ Estrutura de projeto básica
 
 ---
 
@@ -399,4 +445,4 @@ Redirect from,Redirect to
 
 *Desenvolvido para facilitar a migração Bagy → Shopify*
 
-</div>=
+</div>
