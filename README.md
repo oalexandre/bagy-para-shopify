@@ -1,23 +1,10 @@
-# 🛒 Conversor Bagy → Shopify├── 📄 importProductsFromBagy.py        # Exporta produtos da API Bagy
-├── 👥 importCustomersFromBagy.py       # Exporta clientes da API Bagy  
-├── 🎟️ importDiscountCodeFromBagy.py    # Exporta cupons da API Bagy
-├── 💰 importCashbackFromBagy.py        # Exporta saldos de cashback da API Bagy
-├── 🎫 generateVouchersFromCashback.py  # Gera vouchers Shopify baseados em cashback
-├── 🔄 convert_bagy_to_shopify_final.py # Converte JSON para CSV Shopify
-├── 🔗 generateRedirects301.py          # Gera redirects 301 para SEO
-├── 📋 requirements.txt                 # Dependências Python
-├── 🔐 .env                            # Configurações (API_KEY)
-├── 📖 README.md                       # Documentação do projeto
-├── 📂 imported/                       # Arquivos brutos da Bagy
-└── 📂 converted/                      # Arquivos prontos para Shopifygn="center">
+# 🛒 Conversor Bagy → Shopify
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![Status](https://img.shields.io/badge/Status-Stable-brightgreen.svg)
 
 *Scripts para apoio na migração de dados da plataforma Bagy (Dooca Commerce) para Shopify*
-
-</div>
 
 
 Este projeto automatiza a migração de dados da plataforma **Bagy (Dooca Commerce)** para o **Shopify**, convertendo os formatos de dados para serem compatíveis com a importação. O sistema processa seis tipos principais de dados:
