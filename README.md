@@ -27,15 +27,18 @@ Este projeto oferece uma solução completa e automatizada para migrar sua loja 
 - 📦 **Produtos** - Com variações, preços, imagens, estoque e SEO
 - 👥 **Clientes** - Dados completos com endereços e contatos
 - 🎟️ **Cupons** - Importação automática via API com códigos e regras
-- 🔗 **URLs** - Mapeamento para preservar SEO
+- 💰 **Cashback** - Saldos de clientes exportados para referência
+- 🎫 **Vouchers** - Conversão de cashback em cupons Shopify
+- 🔗 **URLs** - Redirects 301 para preservar SEO
 
 ## 📂 Organização dos Scripts
 
 Os scripts seguem uma **numeração sequencial** que indica a ordem recomendada de execução:
 
-1. **01-03**: Scripts de **exportação** (extraem dados da Bagy)
+1. **01-03**: Scripts de **exportação básica** (produtos, clientes, cupons)
 2. **04-05**: Scripts de **conversão/importação** (preparam e enviam para Shopify)
 3. **06**: Script de **validação** (verifica o sucesso da migração)
+4. **07-09**: Scripts **avançados** (cashback, vouchers, redirects SEO)
 
 Esta numeração facilita a execução em ordem e torna o processo mais intuitivo.
 
@@ -44,17 +47,22 @@ Esta numeração facilita a execução em ordem e torna o processo mais intuitiv
 ```
 bagy-to-shopify-migration/
 │
-├── 📋 Scripts de Exportação (Bagy)
+├── 📋 Scripts de Exportação Básica
 │   ├── 01_export_products_from_bagy.py      # Exporta produtos
 │   ├── 02_export_customers_from_bagy.py     # Exporta clientes
 │   └── 03_export_coupons_from_bagy.py       # Exporta cupons
 │
-├── 🔄 Scripts de Importação (Shopify)
+├── 🔄 Scripts de Conversão/Importação
 │   ├── 04_convert_products_to_shopify_csv.py # Converte produtos para CSV
 │   └── 05_import_coupons_to_shopify.py      # Importa cupons via API
 │
-├── 🔍 Scripts de Validação
+├── ✅ Scripts de Validação
 │   └── 06_validate_migration.py             # Valida e compara migração
+│
+├── 🚀 Scripts Avançados
+│   ├── 07_export_cashback_from_bagy.py      # Exporta saldos de cashback
+│   ├── 08_generate_vouchers_from_cashback.py # Gera vouchers no Shopify
+│   └── 09_generate_redirects_301.py         # Gera redirects para SEO
 │
 ├── 📂 Pastas de Dados
 │   ├── imported/                        # Dados exportados da Bagy
@@ -287,6 +295,40 @@ python 06_validate_migration.py
 - Discrepâncias de preços/estoque
 - Gera relatório de validação
 
+### 🚀 FASE 4: Scripts Avançados (Opcional)
+
+#### 8️⃣ Exportar Saldos de Cashback
+```bash
+python 07_export_cashback_from_bagy.py
+```
+**O que faz:**
+- Busca saldos de cashback de todos os clientes
+- Trata erros da API Bagy automaticamente
+- Filtra apenas clientes com saldo positivo
+- Gera `imported/cashback_saldos.xlsx` e `.json`
+
+#### 9️⃣ Gerar Vouchers de Cashback no Shopify
+```bash
+python 08_generate_vouchers_from_cashback.py
+```
+**O que faz:**
+- Converte saldos de cashback em cupons Shopify
+- Cria cupons restritos ao cliente específico
+- Gera vouchers com códigos únicos
+- Salva relatório em Excel
+
+⚠️ **PRÉ-REQUISITO**: Clientes devem estar importados no Shopify primeiro!
+
+#### 🔟 Gerar Redirects 301 para SEO
+```bash
+python 09_generate_redirects_301.py
+```
+**O que faz:**
+- Mapeia URLs antigas da Bagy para novas do Shopify
+- Cria arquivo CSV de redirects 301
+- Preserva SEO durante a migração
+- Evita páginas 404
+
 
 ## 📊 Mapeamento de Dados Detalhado
 
@@ -350,20 +392,22 @@ python 06_validate_migration.py
 
 ### Exemplo 1: Migração Completa
 ```bash
-# 1. Exportar tudo da Bagy (execute em ordem)
+# 1. Exportação básica da Bagy
 python 01_export_products_from_bagy.py
 python 02_export_customers_from_bagy.py  
 python 03_export_coupons_from_bagy.py
 
-# 2. Converter produtos para formato Shopify
+# 2. Conversão e importação
 python 04_convert_products_to_shopify_csv.py
-
-# 3. Importar cupons automaticamente via API
 python 05_import_coupons_to_shopify.py
-# Escolha opção 1 para importar todos
 
-# 4. Validar a migração
+# 3. Validação
 python 06_validate_migration.py
+
+# 4. Scripts avançados (opcional)
+python 07_export_cashback_from_bagy.py
+python 08_generate_vouchers_from_cashback.py
+python 09_generate_redirects_301.py
 ```
 
 ### Exemplo 2: Apenas Cupons de Desconto
